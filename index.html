@@ -24,7 +24,6 @@
 
     .app { display: flex; flex-direction: column; height: 100vh; }
 
-    /* Header */
     .header {
       display: flex; align-items: center; justify-content: space-between;
       padding: 0 24px; height: 52px;
@@ -35,7 +34,6 @@
     .logo span { color: var(--text3); }
     .header-meta { font-size: 10px; color: var(--text3); letter-spacing: 0.08em; text-transform: uppercase; }
 
-    /* URL Bar */
     .url-bar {
       display: flex; align-items: center;
       padding: 12px 24px; gap: 0;
@@ -57,10 +55,8 @@
     .analyze-btn:hover { background: var(--accent); }
     .analyze-btn:disabled { background: var(--bg4); color: var(--text3); cursor: not-allowed; }
 
-    /* Main */
     .main { display: flex; flex: 1; overflow: hidden; }
 
-    /* Graph */
     .graph-area { flex: 1; position: relative; overflow: hidden; background: var(--bg); }
     .graph-area::before {
       content: ''; position: absolute; inset: 0;
@@ -69,7 +65,6 @@
     }
     .graph-area svg { width: 100%; height: 100%; position: relative; z-index: 1; }
 
-    /* Empty */
     .empty-state {
       position: absolute; inset: 0; display: flex; flex-direction: column;
       align-items: center; justify-content: center; z-index: 1; pointer-events: none;
@@ -81,7 +76,6 @@
     .empty-state h2 { font-family: 'Syne', sans-serif; font-size: 13px; font-weight: 600; color: var(--text3); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 8px; }
     .empty-state p { font-size: 11px; color: var(--text3); letter-spacing: 0.04em; opacity: 0.6; }
 
-    /* Loading */
     .loading-overlay {
       position: absolute; inset: 0; display: flex; flex-direction: column;
       align-items: center; justify-content: center; z-index: 10;
@@ -92,10 +86,8 @@
     .loading-text { font-size: 11px; color: var(--text2); letter-spacing: 0.1em; text-transform: uppercase; margin-top: 16px; }
     .loading-sub { font-size: 10px; color: var(--text3); letter-spacing: 0.06em; margin-top: 6px; }
 
-    /* Error */
     .error-bar { background: #1a0a0a; border-bottom: 1px solid #2a1010; padding: 8px 24px; font-size: 11px; color: #886666; display: flex; align-items: center; gap: 8px; }
 
-    /* Tooltip */
     .graph-tooltip {
       position: fixed; background: var(--bg2); border: 1px solid var(--border2);
       padding: 6px 10px; font-size: 10px; color: var(--text);
@@ -103,10 +95,8 @@
       transform: translate(-50%, calc(-100% - 10px));
     }
 
-    /* Domain badge */
     .domain-badge { position: absolute; top: 16px; left: 16px; background: var(--bg2); border: 1px solid var(--border2); padding: 5px 10px; font-size: 10px; color: var(--text2); letter-spacing: 0.05em; z-index: 5; }
 
-    /* Controls */
     .controls { position: absolute; bottom: 16px; left: 16px; display: flex; gap: 4px; z-index: 5; }
     .ctrl-btn {
       width: 28px; height: 28px; background: var(--bg2); border: 1px solid var(--border2);
@@ -115,7 +105,6 @@
     }
     .ctrl-btn:hover { background: var(--bg3); color: var(--text); }
 
-    /* Sidebar */
     .sidebar { width: 280px; border-left: 1px solid var(--border); background: var(--bg2); display: flex; flex-direction: column; overflow: hidden; flex-shrink: 0; }
     .sidebar-header { padding: 14px 16px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
     .sidebar-title { font-size: 9px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--text3); font-family: 'Syne', sans-serif; font-weight: 600; }
@@ -124,7 +113,6 @@
     .sidebar-body::-webkit-scrollbar { width: 2px; }
     .sidebar-body::-webkit-scrollbar-thumb { background: var(--border2); }
 
-    /* Node detail */
     .node-detail { padding: 20px 16px; border-bottom: 1px solid var(--border); }
     .node-detail-label { font-family: 'Syne', sans-serif; font-size: 16px; font-weight: 700; color: var(--text); margin-bottom: 6px; }
     .node-detail-meta { font-size: 10px; color: var(--text3); letter-spacing: 0.06em; margin-bottom: 14px; }
@@ -133,7 +121,6 @@
     .tag { font-size: 9px; background: var(--bg4); border: 1px solid var(--border2); color: var(--text2); padding: 3px 7px; letter-spacing: 0.05em; cursor: pointer; transition: all 0.15s; }
     .tag:hover { border-color: var(--text3); color: var(--text); }
 
-    /* Articles */
     .articles-section { padding: 12px 16px 0; }
     .articles-label { font-size: 9px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text3); margin-bottom: 10px; font-family: 'Syne', sans-serif; font-weight: 600; }
     .article-item { padding: 10px 0; border-bottom: 1px solid var(--border); cursor: pointer; transition: opacity 0.15s; }
@@ -141,7 +128,6 @@
     .article-title { font-size: 11px; color: var(--text); line-height: 1.5; margin-bottom: 3px; }
     .article-url { font-size: 9px; color: var(--text3); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
-    /* Node list */
     .node-list { padding: 8px 0; }
     .node-list-item { display: flex; align-items: center; gap: 10px; padding: 8px 16px; cursor: pointer; transition: background 0.15s; border-bottom: 1px solid transparent; }
     .node-list-item:hover { background: var(--bg3); }
@@ -153,13 +139,11 @@
     .node-list-label { font-size: 11px; color: var(--text2); flex: 1; }
     .node-list-weight { font-size: 9px; color: var(--text3); font-variant-numeric: tabular-nums; }
 
-    /* Stats */
     .stats-bar { border-top: 1px solid var(--border); padding: 10px 16px; display: flex; gap: 20px; background: var(--bg); flex-shrink: 0; }
     .stat { display: flex; flex-direction: column; gap: 2px; }
     .stat-value { font-family: 'Syne', sans-serif; font-size: 14px; font-weight: 700; color: var(--text); }
     .stat-label { font-size: 9px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.08em; }
 
-    /* Modal */
     .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.92); display: flex; align-items: center; justify-content: center; z-index: 1000; backdrop-filter: blur(8px); }
     .modal { background: var(--bg2); border: 1px solid var(--border2); max-width: 520px; width: 90%; padding: 36px; }
     .modal-eyebrow { font-size: 9px; text-transform: uppercase; letter-spacing: 0.15em; color: var(--text3); margin-bottom: 16px; font-family: 'Syne', sans-serif; font-weight: 600; }
@@ -173,8 +157,7 @@
     .accept-btn { background: var(--text); color: var(--bg); border: none; font-family: 'Syne', sans-serif; font-weight: 700; font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; padding: 10px 22px; cursor: pointer; white-space: nowrap; transition: background 0.2s; }
     .accept-btn:hover { background: #d0d0d0; }
 
-    /* Legend */
-    .legend { position: absolute; bottom: 16px; right: 16px; display: flex; flex-direction: column; gap: 5px; z-index: 5; background: rgba(8,8,8,0.6); border: 1px solid var(--border); padding: 8px 10px; }
+    .legend { position: absolute; bottom: 16px; right: 16px; display: flex; flex-direction: column; gap: 5px; z-index: 5; background: rgba(8,8,8,0.7); border: 1px solid var(--border); padding: 8px 10px; }
     .legend-item { display: flex; align-items: center; gap: 6px; font-size: 9px; color: var(--text3); letter-spacing: 0.06em; }
     .legend-dot { width: 6px; height: 6px; border-radius: 50%; }
   </style>
@@ -185,66 +168,26 @@
 <script type="text/babel">
 const { useState, useEffect, useRef, useCallback } = React;
 
-// ─── API ──────────────────────────────────────────────────────────────────────
+// ─── API — calls our Vercel serverless proxy ──────────────────────────────────
 async function analyzeWebsite(url) {
-  const domain = url.replace(/^https?:\/\//, "").split("/")[0];
-  const prompt = `You are a web content analysis AI. Given a website URL, generate a realistic content network analysis as if you have crawled the site.
-
-Website URL: ${url}
-Domain: ${domain}
-
-Generate a content network with 18-26 keyword nodes and their connections. Return ONLY valid JSON with this exact structure — no markdown, no explanation, just raw JSON:
-
-{
-  "domain": "${domain}",
-  "title": "Site title",
-  "description": "One sentence about the site",
-  "nodes": [
-    {
-      "id": "node_1",
-      "label": "keyword",
-      "weight": 85,
-      "category": "primary",
-      "articles": [
-        {"title": "Article title", "url": "${url}/article-slug"}
-      ]
-    }
-  ],
-  "edges": [
-    {"source": "node_1", "target": "node_2", "weight": 0.8}
-  ]
-}
-
-Rules:
-- weight: 20-100 (importance score)
-- category: "primary" (5-7 nodes, weight 70-100), "secondary" (8-10 nodes, weight 40-70), "tertiary" (rest, weight 20-40)
-- edges: 30-50 connections, weight 0.1-1.0
-- articles: 2-5 per node, realistic titles and URL slugs
-- Be highly specific and realistic to ${domain}`;
-
-  const res = await fetch("https://api.anthropic.com/v1/messages", {
+  const res = await fetch("/api/analyze", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      model: "claude-sonnet-4-20250514",
-      max_tokens: 4000,
-      messages: [{ role: "user", content: prompt }]
-    })
+    body: JSON.stringify({ url })
   });
 
-  const data = await res.json();
-  if (data.error) throw new Error(data.error.message);
-  const text = data.content[0].text;
-  const jsonMatch = text.match(/\{[\s\S]*\}/);
-  if (!jsonMatch) throw new Error("No JSON in response");
-  return JSON.parse(jsonMatch[0]);
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.error || `Server error ${res.status}`);
+  }
+
+  return res.json();
 }
 
 // ─── Network Graph ────────────────────────────────────────────────────────────
 function NetworkGraph({ data, onNodeClick, selectedNode }) {
   const svgRef = useRef(null);
   const simRef = useRef(null);
-  const zoomRef = useRef(null);
   const [tooltip, setTooltip] = useState(null);
 
   useEffect(() => {
@@ -259,29 +202,23 @@ function NetworkGraph({ data, onNodeClick, selectedNode }) {
 
     const zoom = d3.zoom().scaleExtent([0.2, 5]).on("zoom", e => g.attr("transform", e.transform));
     svg.call(zoom);
-    zoomRef.current = zoom;
 
     const rScale = d3.scaleLinear().domain([20, 100]).range([5, 20]);
     const opScale = d3.scaleLinear().domain([20, 100]).range([0.35, 1]);
     const catColor = { primary: "#b0b0b0", secondary: "#606060", tertiary: "#303030" };
 
-    // Deep-copy nodes to avoid mutation
     const nodes = data.nodes.map(n => ({ ...n }));
     const nodeMap = new Map(nodes.map(n => [n.id, n]));
-
-    // Only valid edges
     const edges = data.edges
       .filter(e => nodeMap.has(e.source) && nodeMap.has(e.target))
       .map(e => ({ ...e }));
 
-    // Links
     const link = g.append("g").selectAll("line")
       .data(edges).enter().append("line")
       .attr("stroke", "#181818")
       .attr("stroke-width", d => Math.max(0.5, d.weight * 1.8))
       .attr("stroke-opacity", d => d.weight * 0.7);
 
-    // Nodes
     const nodeG = g.append("g").selectAll("g")
       .data(nodes).enter().append("g")
       .style("cursor", "pointer")
@@ -291,7 +228,6 @@ function NetworkGraph({ data, onNodeClick, selectedNode }) {
         .on("end", (e, d) => { if (!e.active) simRef.current.alphaTarget(0); d.fx = null; d.fy = null; })
       );
 
-    // Outer glow ring
     nodeG.append("circle")
       .attr("r", d => rScale(d.weight) + 5)
       .attr("fill", "none")
@@ -299,7 +235,6 @@ function NetworkGraph({ data, onNodeClick, selectedNode }) {
       .attr("stroke-opacity", d => opScale(d.weight) * 0.12)
       .attr("stroke-width", 1.5);
 
-    // Main circle
     nodeG.append("circle")
       .attr("r", d => rScale(d.weight))
       .attr("fill", d => catColor[d.category])
@@ -309,7 +244,6 @@ function NetworkGraph({ data, onNodeClick, selectedNode }) {
       .attr("stroke-width", 1)
       .attr("class", "node-circle");
 
-    // Label
     nodeG.append("text")
       .text(d => d.label)
       .attr("text-anchor", "middle")
@@ -321,7 +255,6 @@ function NetworkGraph({ data, onNodeClick, selectedNode }) {
       .attr("letter-spacing", "0.05em")
       .attr("pointer-events", "none");
 
-    // Events
     nodeG
       .on("mouseenter", (e, d) => {
         d3.select(e.currentTarget).select(".node-circle")
@@ -337,7 +270,6 @@ function NetworkGraph({ data, onNodeClick, selectedNode }) {
       })
       .on("click", (e, d) => { e.stopPropagation(); onNodeClick(d); });
 
-    // Simulation
     const sim = d3.forceSimulation(nodes)
       .force("link", d3.forceLink(edges).id(d => d.id).distance(d => 90 + (1 - d.weight) * 55).strength(d => d.weight * 0.35))
       .force("charge", d3.forceManyBody().strength(d => -rScale(d.weight) * 40))
@@ -352,7 +284,6 @@ function NetworkGraph({ data, onNodeClick, selectedNode }) {
       nodeG.attr("transform", d => `translate(${d.x},${d.y})`);
     });
 
-    // Highlight logic when selectedNode changes
     if (selectedNode) {
       const connSet = new Set();
       edges.forEach(e => {
@@ -371,7 +302,6 @@ function NetworkGraph({ data, onNodeClick, selectedNode }) {
     }
 
     window._centerGraph = () => svg.transition().duration(600).call(zoom.transform, d3.zoomIdentity);
-
     return () => sim.stop();
   }, [data, selectedNode]);
 
@@ -414,7 +344,7 @@ function App() {
       const d = await analyzeWebsite(u);
       setNetworkData(d);
     } catch(e) {
-      setError("Analysis failed — check the URL and try again. (" + e.message + ")");
+      setError("Analysis failed — " + e.message);
     } finally {
       clearInterval(iv); setLoading(false);
     }
@@ -441,7 +371,6 @@ function App() {
 
   return (
     <>
-      {/* Disclaimer */}
       {disclaimer && (
         <div className="modal-overlay">
           <div className="modal">
@@ -462,23 +391,17 @@ function App() {
       )}
 
       <div className="app">
-        {/* Header */}
         <div className="header">
           <div className="logo">Node<span>·</span>Mapper</div>
           <div className="header-meta">Content Intelligence Network · v1.0</div>
         </div>
 
-        {/* URL Bar */}
         <div className="url-bar">
           <div className="url-prefix">Target ↗</div>
           <input
-            className="url-input"
-            type="text"
-            placeholder="https://example.com"
-            value={url}
-            onChange={e => setUrl(e.target.value)}
-            onKeyDown={e => e.key === "Enter" && handleAnalyze()}
-            spellCheck={false}
+            className="url-input" type="text" placeholder="https://example.com"
+            value={url} onChange={e => setUrl(e.target.value)}
+            onKeyDown={e => e.key === "Enter" && handleAnalyze()} spellCheck={false}
           />
           <button className="analyze-btn" onClick={handleAnalyze} disabled={loading || !url.trim()}>
             Create Content Network
@@ -488,7 +411,6 @@ function App() {
         {error && <div className="error-bar"><span>⚠</span><span>{error}</span></div>}
 
         <div className="main">
-          {/* Graph area */}
           <div className="graph-area" onClick={() => setSelectedNode(null)}>
             {!networkData && !loading && (
               <div className="empty-state">
@@ -532,7 +454,6 @@ function App() {
             )}
           </div>
 
-          {/* Sidebar */}
           <div className="sidebar">
             <div className="sidebar-header">
               <div className="sidebar-title">{selectedNode ? "Node Detail" : "Index"}</div>
