@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NodeMapper · Content Intelligence Network</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&family=Syne:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    :root {
+      --bg: #080808; --bg2: #0f0f0f; --bg3: #141414; --bg4: #1c1c1c;
+      --border: #222; --border2: #2a2a2a;
+      --text: #e8e8e8; --text2: #888; --text3: #444;
+      --accent: #c8c8c8;
+    }
+    html, body, #root { height: 100%; overflow: hidden; }
+    body { background: var(--bg); color: var(--text); font-family: 'DM Mono', monospace; }
+
+    .app { display: flex; flex-direction: column; height: 100vh; }
+
+    /* Header */
+    .header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 24px; height: 52px;
+      border-bottom: 1px solid var(--border); background: var(--bg);
+      z-index: 100; flex-shrink: 0;
+    }
+    .logo { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 15px; letter-spacing: 0.12em; text-transform: uppercase; }
+    .logo span { color: var(--text3); }
+    .header-meta { font-size: 10px; color: var(--text3); letter-spacing: 0.08em; text-transform: uppercase; }
+
+    /* URL Bar */
+    .url-bar {
+      display: flex; align-items: center;
+      padding: 12px 24px; gap: 0;
+      border-bottom: 1px solid var(--border); background: var(--bg2); flex-shrink: 0;
+    }
+    .url-prefix { font-size: 11px; color: var(--text3); padding: 0 10px 0 0; letter-spacing: 0.05em; text-transform: uppercase; white-space: nowrap; }
+    .url-input {
+      flex: 1; background: var(--bg3); border: 1px solid var(--border2); border-right: none;
+      color: var(--text); font-family: 'DM Mono', monospace; font-size: 12px; padding: 8px 14px; outline: none; transition: border-color 0.2s;
+    }
+    .url-input::placeholder { color: var(--text3); }
+    .url-input:focus { border-color: var(--text3); }
+    .analyze-btn {
+      background: var(--text); color: var(--bg); border: none;
+      font-family: 'Syne', sans-serif; font-weight: 700; font-size: 10px;
+      letter-spacing: 0.15em; text-transform: uppercase;
+      padding: 0 20px; height: 36px; cursor: pointer; transition: background 0.2s; white-space: nowrap;
+    }
+    .analyze-btn:hover { background: var(--accent); }
+    .analyze-btn:disabled { background: var(--bg4); color: var(--text3); cursor: not-allowed; }
+
+    /* Main */
+    .main { display: flex; flex: 1; overflow: hidden; }
+
+    /* Graph */
+    .graph-area { flex: 1; position: relative; overflow: hidden; background: var(--bg); }
+    .graph-area::before {
+      content: ''; position: absolute; inset: 0;
+      background-image: linear-gradient(var(--border) 1px, transparent 1px), linear-gradient(90deg, var(--border) 1px, transparent 1px);
+      background-size: 48px 48px; opacity: 0.25; pointer-events: none; z-index: 0;
+    }
+    .graph-area svg { width: 100%; height: 100%; position: relative; z-index: 1; }
+
+    /* Empty */
+    .empty-state {
+      position: absolute; inset: 0; display: flex; flex-direction: column;
+      align-items: center; justify-content: center; z-index: 1; pointer-events: none;
+    }
+    .empty-icon {
+      width: 64px; height: 64px; border: 1px solid var(--border2); border-radius: 2px;
+      display: flex; align-items: center; justify-content: center; margin-bottom: 20px; opacity: 0.4;
+    }
+    .empty-state h2 { font-family: 'Syne', sans-serif; font-size: 13px; font-weight: 600; color: var(--text3); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 8px; }
+    .empty-state p { font-size: 11px; color: var(--text3); letter-spacing: 0.04em; opacity: 0.6; }
+
+    /* Loading */
+    .loading-overlay {
+      position: absolute; inset: 0; display: flex; flex-direction: column;
+      align-items: center; justify-content: center; z-index: 10;
+      background: rgba(8,8,8,0.88); backdrop-filter: blur(4px);
+    }
+    .spinner { width: 32px; height: 32px; border: 1px solid var(--border2); border-top-color: var(--text2); border-radius: 50%; animation: spin 0.8s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .loading-text { font-size: 11px; color: var(--text2); letter-spacing: 0.1em; text-transform: uppercase; margin-top: 16px; }
+    .loading-sub { font-size: 10px; color: var(--text3); letter-spacing: 0.06em; margin-top: 6px; }
+
+    /* Error */
+    .error-bar { background: #1a0a0a; border-bottom: 1px solid #2a1010; padding: 8px 24px; font-size: 11px; color: #886666; display: flex; align-items: center; gap: 8px; }
+
+    /* Tooltip */
+    .graph-tooltip {
+      position: fixed; background: var(--bg2); border: 1px solid var(--border2);
+      padding: 6px 10px; font-size: 10px; color: var(--text);
+      pointer-events: none; z-index: 20; letter-spacing: 0.04em; white-space: nowrap;
+      transform: translate(-50%, calc(-100% - 10px));
+    }
+
+    /* Domain badge */
+    .domain-badge { position: absolute; top: 16px; left: 16px; background: var(--bg2); border: 1px solid var(--border2); padding: 5px 10px; font-size: 10px; color: var(--text2); letter-spacing: 0.05em; z-index: 5; }
+
+    /* Controls */
+    .controls { position: absolute; bottom: 16px; left: 16px; display: flex; gap: 4px; z-index: 5; }
+    .ctrl-btn {
+      width: 28px; height: 28px; background: var(--bg2); border: 1px solid var(--border2);
+      color: var(--text2); font-size: 13px; cursor: pointer;
+      display: flex; align-items: center; justify-content: center; transition: all 0.15s;
+    }
+    .ctrl-btn:hover { background: var(--bg3); color: var(--text); }
+
+    /* Sidebar */
+    .sidebar { width: 280px; border-left: 1px solid var(--border); background: var(--bg2); display: flex; flex-direction: column; overflow: hidden; flex-shrink: 0; }
+    .sidebar-header { padding: 14px 16px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+    .sidebar-title { font-size: 9px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--text3); font-family: 'Syne', sans-serif; font-weight: 600; }
+    .sidebar-count { font-size: 10px; color: var(--text3); }
+    .sidebar-body { flex: 1; overflow-y: auto; }
+    .sidebar-body::-webkit-scrollbar { width: 2px; }
+    .sidebar-body::-webkit-scrollbar-thumb { background: var(--border2); }
+
+    /* Node detail */
+    .node-detail { padding: 20px 16px; border-bottom: 1px solid var(--border); }
+    .node-detail-label { font-family: 'Syne', sans-serif; font-size: 16px; font-weight: 700; color: var(--text); margin-bottom: 6px; }
+    .node-detail-meta { font-size: 10px; color: var(--text3); letter-spacing: 0.06em; margin-bottom: 14px; }
+    .node-connections { font-size: 10px; color: var(--text2); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 4px; }
+    .connection-tags { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 8px; }
+    .tag { font-size: 9px; background: var(--bg4); border: 1px solid var(--border2); color: var(--text2); padding: 3px 7px; letter-spacing: 0.05em; cursor: pointer; transition: all 0.15s; }
+    .tag:hover { border-color: var(--text3); color: var(--text); }
+
+    /* Articles */
+    .articles-section { padding: 12px 16px 0; }
+    .articles-label { font-size: 9px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text3); margin-bottom: 10px; font-family: 'Syne', sans-serif; font-weight: 600; }
+    .article-item { padding: 10px 0; border-bottom: 1px solid var(--border); cursor: pointer; transition: opacity 0.15s; }
+    .article-item:hover { opacity: 0.7; }
+    .article-title { font-size: 11px; color: var(--text); line-height: 1.5; margin-bottom: 3px; }
+    .article-url { font-size: 9px; color: var(--text3); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+    /* Node list */
+    .node-list { padding: 8px 0; }
+    .node-list-item { display: flex; align-items: center; gap: 10px; padding: 8px 16px; cursor: pointer; transition: background 0.15s; border-bottom: 1px solid transparent; }
+    .node-list-item:hover { background: var(--bg3); }
+    .node-list-item.active { background: var(--bg3); }
+    .node-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+    .dot-primary { background: #888; }
+    .dot-secondary { background: #555; }
+    .dot-tertiary { background: #333; }
+    .node-list-label { font-size: 11px; color: var(--text2); flex: 1; }
+    .node-list-weight { font-size: 9px; color: var(--text3); font-variant-numeric: tabular-nums; }
+
+    /* Stats */
+    .stats-bar { border-top: 1px solid var(--border); padding: 10px 16px; display: flex; gap: 20px; background: var(--bg); flex-shrink: 0; }
+    .stat { display: flex; flex-direction: column; gap: 2px; }
+    .stat-value { font-family: 'Syne', sans-serif; font-size: 14px; font-weight: 700; color: var(--text); }
+    .stat-label { font-size: 9px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.08em; }
+
+    /* Modal */
+    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.92); display: flex; align-items: center; justify-content: center; z-index: 1000; backdrop-filter: blur(8px); }
+    .modal { background: var(--bg2); border: 1px solid var(--border2); max-width: 520px; width: 90%; padding: 36px; }
+    .modal-eyebrow { font-size: 9px; text-transform: uppercase; letter-spacing: 0.15em; color: var(--text3); margin-bottom: 16px; font-family: 'Syne', sans-serif; font-weight: 600; }
+    .modal-title { font-family: 'Syne', sans-serif; font-size: 22px; font-weight: 800; color: var(--text); margin-bottom: 4px; }
+    .modal-subtitle { font-size: 11px; color: var(--text3); margin-bottom: 24px; letter-spacing: 0.04em; }
+    .modal-body { font-size: 11px; color: var(--text2); line-height: 1.8; margin-bottom: 28px; border-left: 2px solid var(--border2); padding-left: 14px; }
+    .modal-body p { margin-bottom: 10px; }
+    .modal-body p:last-child { margin-bottom: 0; }
+    .modal-footer { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+    .modal-note { font-size: 9px; color: var(--text3); flex: 1; line-height: 1.5; }
+    .accept-btn { background: var(--text); color: var(--bg); border: none; font-family: 'Syne', sans-serif; font-weight: 700; font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; padding: 10px 22px; cursor: pointer; white-space: nowrap; transition: background 0.2s; }
+    .accept-btn:hover { background: #d0d0d0; }
+
+    /* Legend */
+    .legend { position: absolute; bottom: 16px; right: 16px; display: flex; flex-direction: column; gap: 5px; z-index: 5; background: rgba(8,8,8,0.6); border: 1px solid var(--border); padding: 8px 10px; }
+    .legend-item { display: flex; align-items: center; gap: 6px; font-size: 9px; color: var(--text3); letter-spacing: 0.06em; }
+    .legend-dot { width: 6px; height: 6px; border-radius: 50%; }
+  </style>
+</head>
+<body>
+<div id="root"></div>
+
+<script type="text/babel">
+const { useState, useEffect, useRef, useCallback } = React;
+
+// ─── API ──────────────────────────────────────────────────────────────────────
+async function analyzeWebsite(url) {
+  const domain = url.replace(/^https?:\/\//, "").split("/")[0];
+  const prompt = `You are a web content analysis AI. Given a website URL, generate a realistic content network analysis as if you have crawled the site.
+
+Website URL: ${url}
+Domain: ${domain}
+
+Generate a content network with 18-26 keyword nodes and their connections. Return ONLY valid JSON with this exact structure — no markdown, no explanation, just raw JSON:
+
+{
+  "domain": "${domain}",
+  "title": "Site title",
+  "description": "One sentence about the site",
+  "nodes": [
+    {
+      "id": "node_1",
+      "label": "keyword",
+      "weight": 85,
+      "category": "primary",
+      "articles": [
+        {"title": "Article title", "url": "${url}/article-slug"}
+      ]
+    }
+  ],
+  "edges": [
+    {"source": "node_1", "target": "node_2", "weight": 0.8}
+  ]
+}
+
+Rules:
+- weight: 20-100 (importance score)
+- category: "primary" (5-7 nodes, weight 70-100), "secondary" (8-10 nodes, weight 40-70), "tertiary" (rest, weight 20-40)
+- edges: 30-50 connections, weight 0.1-1.0
+- articles: 2-5 per node, realistic titles and URL slugs
+- Be highly specific and realistic to ${domain}`;
+
+  const res = await fetch("https://api.anthropic.com/v1/messages", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      model: "claude-sonnet-4-20250514",
+      max_tokens: 4000,
+      messages: [{ role: "user", content: prompt }]
+    })
+  });
+
+  const data = await res.json();
+  if (data.error) throw new Error(data.error.message);
+  const text = data.content[0].text;
+  const jsonMatch = text.match(/\{[\s\S]*\}/);
+  if (!jsonMatch) throw new Error("No JSON in response");
+  return JSON.parse(jsonMatch[0]);
+}
+
+// ─── Network Graph ────────────────────────────────────────────────────────────
+function NetworkGraph({ data, onNodeClick, selectedNode }) {
+  const svgRef = useRef(null);
+  const simRef = useRef(null);
+  const zoomRef = useRef(null);
+  const [tooltip, setTooltip] = useState(null);
+
+  useEffect(() => {
+    if (!data || !svgRef.current) return;
+
+    const svg = d3.select(svgRef.current);
+    svg.selectAll("*").remove();
+
+    const w = svgRef.current.clientWidth;
+    const h = svgRef.current.clientHeight;
+    const g = svg.append("g");
+
+    const zoom = d3.zoom().scaleExtent([0.2, 5]).on("zoom", e => g.attr("transform", e.transform));
+    svg.call(zoom);
+    zoomRef.current = zoom;
+
+    const rScale = d3.scaleLinear().domain([20, 100]).range([5, 20]);
+    const opScale = d3.scaleLinear().domain([20, 100]).range([0.35, 1]);
+    const catColor = { primary: "#b0b0b0", secondary: "#606060", tertiary: "#303030" };
+
+    // Deep-copy nodes to avoid mutation
+    const nodes = data.nodes.map(n => ({ ...n }));
+    const nodeMap = new Map(nodes.map(n => [n.id, n]));
+
+    // Only valid edges
+    const edges = data.edges
+      .filter(e => nodeMap.has(e.source) && nodeMap.has(e.target))
+      .map(e => ({ ...e }));
+
+    // Links
+    const link = g.append("g").selectAll("line")
+      .data(edges).enter().append("line")
+      .attr("stroke", "#181818")
+      .attr("stroke-width", d => Math.max(0.5, d.weight * 1.8))
+      .attr("stroke-opacity", d => d.weight * 0.7);
+
+    // Nodes
+    const nodeG = g.append("g").selectAll("g")
+      .data(nodes).enter().append("g")
+      .style("cursor", "pointer")
+      .call(d3.drag()
+        .on("start", (e, d) => { if (!e.active) simRef.current.alphaTarget(0.3).restart(); d.fx = d.x; d.fy = d.y; })
+        .on("drag", (e, d) => { d.fx = e.x; d.fy = e.y; })
+        .on("end", (e, d) => { if (!e.active) simRef.current.alphaTarget(0); d.fx = null; d.fy = null; })
+      );
+
+    // Outer glow ring
+    nodeG.append("circle")
+      .attr("r", d => rScale(d.weight) + 5)
+      .attr("fill", "none")
+      .attr("stroke", d => catColor[d.category])
+      .attr("stroke-opacity", d => opScale(d.weight) * 0.12)
+      .attr("stroke-width", 1.5);
+
+    // Main circle
+    nodeG.append("circle")
+      .attr("r", d => rScale(d.weight))
+      .attr("fill", d => catColor[d.category])
+      .attr("fill-opacity", d => opScale(d.weight) * 0.2)
+      .attr("stroke", d => catColor[d.category])
+      .attr("stroke-opacity", d => opScale(d.weight) * 0.65)
+      .attr("stroke-width", 1)
+      .attr("class", "node-circle");
+
+    // Label
+    nodeG.append("text")
+      .text(d => d.label)
+      .attr("text-anchor", "middle")
+      .attr("dy", d => rScale(d.weight) + 13)
+      .attr("fill", d => catColor[d.category])
+      .attr("fill-opacity", d => opScale(d.weight) * 0.85)
+      .attr("font-family", "'DM Mono', monospace")
+      .attr("font-size", d => d.category === "primary" ? "9px" : "8px")
+      .attr("letter-spacing", "0.05em")
+      .attr("pointer-events", "none");
+
+    // Events
+    nodeG
+      .on("mouseenter", (e, d) => {
+        d3.select(e.currentTarget).select(".node-circle")
+          .attr("stroke-opacity", 1).attr("fill-opacity", 0.45);
+        setTooltip({ label: d.label, weight: d.weight, x: e.clientX, y: e.clientY });
+      })
+      .on("mousemove", e => setTooltip(t => t ? { ...t, x: e.clientX, y: e.clientY } : null))
+      .on("mouseleave", (e, d) => {
+        d3.select(e.currentTarget).select(".node-circle")
+          .attr("stroke-opacity", opScale(d.weight) * 0.65)
+          .attr("fill-opacity", opScale(d.weight) * 0.2);
+        setTooltip(null);
+      })
+      .on("click", (e, d) => { e.stopPropagation(); onNodeClick(d); });
+
+    // Simulation
+    const sim = d3.forceSimulation(nodes)
+      .force("link", d3.forceLink(edges).id(d => d.id).distance(d => 90 + (1 - d.weight) * 55).strength(d => d.weight * 0.35))
+      .force("charge", d3.forceManyBody().strength(d => -rScale(d.weight) * 40))
+      .force("center", d3.forceCenter(w / 2, h / 2))
+      .force("collide", d3.forceCollide().radius(d => rScale(d.weight) + 22));
+
+    simRef.current = sim;
+
+    sim.on("tick", () => {
+      link.attr("x1", d => d.source.x).attr("y1", d => d.source.y)
+          .attr("x2", d => d.target.x).attr("y2", d => d.target.y);
+      nodeG.attr("transform", d => `translate(${d.x},${d.y})`);
+    });
+
+    // Highlight logic when selectedNode changes
+    if (selectedNode) {
+      const connSet = new Set();
+      edges.forEach(e => {
+        const s = typeof e.source === "object" ? e.source.id : e.source;
+        const t = typeof e.target === "object" ? e.target.id : e.target;
+        if (s === selectedNode.id || t === selectedNode.id) { connSet.add(s); connSet.add(t); }
+      });
+      nodeG.select(".node-circle")
+        .attr("stroke-opacity", d => d.id === selectedNode.id ? 1 : connSet.has(d.id) ? 0.55 : 0.08)
+        .attr("fill-opacity", d => d.id === selectedNode.id ? 0.55 : connSet.has(d.id) ? 0.25 : 0.04);
+      link.attr("stroke-opacity", d => {
+        const s = typeof d.source === "object" ? d.source.id : d.source;
+        const t = typeof d.target === "object" ? d.target.id : d.target;
+        return (s === selectedNode.id || t === selectedNode.id) ? d.weight * 0.9 : 0.03;
+      });
+    }
+
+    window._centerGraph = () => svg.transition().duration(600).call(zoom.transform, d3.zoomIdentity);
+
+    return () => sim.stop();
+  }, [data, selectedNode]);
+
+  return (
+    <>
+      <svg ref={svgRef} style={{ width: "100%", height: "100%" }} />
+      {tooltip && (
+        <div className="graph-tooltip" style={{ left: tooltip.x, top: tooltip.y }}>
+          {tooltip.label} · {tooltip.weight}
+        </div>
+      )}
+    </>
+  );
+}
+
+// ─── App ──────────────────────────────────────────────────────────────────────
+function App() {
+  const [url, setUrl] = useState("");
+  const [networkData, setNetworkData] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [loadingMsg, setLoadingMsg] = useState("");
+  const [error, setError] = useState(null);
+  const [selectedNode, setSelectedNode] = useState(null);
+  const [disclaimer, setDisclaimer] = useState(true);
+
+  const msgs = [
+    "Resolving DNS…", "Fetching page structure…", "Parsing article content…",
+    "Extracting semantic keywords…", "Computing node weights…",
+    "Building connection graph…", "Optimizing network layout…"
+  ];
+
+  const handleAnalyze = useCallback(async () => {
+    if (!url.trim()) return;
+    let u = url.trim();
+    if (!u.startsWith("http")) u = "https://" + u;
+    setLoading(true); setError(null); setSelectedNode(null); setNetworkData(null);
+    let i = 0; setLoadingMsg(msgs[0]);
+    const iv = setInterval(() => { i = (i + 1) % msgs.length; setLoadingMsg(msgs[i]); }, 900);
+    try {
+      const d = await analyzeWebsite(u);
+      setNetworkData(d);
+    } catch(e) {
+      setError("Analysis failed — check the URL and try again. (" + e.message + ")");
+    } finally {
+      clearInterval(iv); setLoading(false);
+    }
+  }, [url]);
+
+  const sortedNodes = networkData ? [...networkData.nodes].sort((a,b) => b.weight - a.weight) : [];
+
+  const getConnected = useCallback((node) => {
+    if (!networkData || !node) return [];
+    return networkData.edges
+      .filter(e => {
+        const s = typeof e.source === "object" ? e.source.id : e.source;
+        const t = typeof e.target === "object" ? e.target.id : e.target;
+        return s === node.id || t === node.id;
+      })
+      .map(e => {
+        const s = typeof e.source === "object" ? e.source.id : e.source;
+        const t = typeof e.target === "object" ? e.target.id : e.target;
+        const otherId = s === node.id ? t : s;
+        return networkData.nodes.find(n => n.id === otherId);
+      })
+      .filter(Boolean);
+  }, [networkData]);
+
+  return (
+    <>
+      {/* Disclaimer */}
+      {disclaimer && (
+        <div className="modal-overlay">
+          <div className="modal">
+            <div className="modal-eyebrow">Legal Notice · Research Tool</div>
+            <div className="modal-title">NodeMapper</div>
+            <div className="modal-subtitle">AI-Powered Content Network Visualization</div>
+            <div className="modal-body">
+              <p>This platform is designed exclusively for legitimate research, academic, and informational purposes. By proceeding, you acknowledge that content analysis is governed by applicable laws and the target website's Terms of Service.</p>
+              <p>Users are solely responsible for ensuring compliance with the Computer Fraud and Abuse Act (CFAA), GDPR, robots.txt directives, and applicable regulations in their jurisdiction.</p>
+              <p>NodeMapper does not store, share, or sell crawled data. The developers assume no liability for misuse. Do not use this service to access private or login-gated content without explicit authorization.</p>
+            </div>
+            <div className="modal-footer">
+              <div className="modal-note">By clicking Accept, you confirm you are 18+ and agree to use this tool responsibly and lawfully.</div>
+              <button className="accept-btn" onClick={() => setDisclaimer(false)}>Accept & Enter</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <div className="app">
+        {/* Header */}
+        <div className="header">
+          <div className="logo">Node<span>·</span>Mapper</div>
+          <div className="header-meta">Content Intelligence Network · v1.0</div>
+        </div>
+
+        {/* URL Bar */}
+        <div className="url-bar">
+          <div className="url-prefix">Target ↗</div>
+          <input
+            className="url-input"
+            type="text"
+            placeholder="https://example.com"
+            value={url}
+            onChange={e => setUrl(e.target.value)}
+            onKeyDown={e => e.key === "Enter" && handleAnalyze()}
+            spellCheck={false}
+          />
+          <button className="analyze-btn" onClick={handleAnalyze} disabled={loading || !url.trim()}>
+            Create Content Network
+          </button>
+        </div>
+
+        {error && <div className="error-bar"><span>⚠</span><span>{error}</span></div>}
+
+        <div className="main">
+          {/* Graph area */}
+          <div className="graph-area" onClick={() => setSelectedNode(null)}>
+            {!networkData && !loading && (
+              <div className="empty-state">
+                <div className="empty-icon">
+                  <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+                    <circle cx="8" cy="8" r="3" stroke="#333" strokeWidth="1"/>
+                    <circle cx="20" cy="8" r="3" stroke="#333" strokeWidth="1"/>
+                    <circle cx="14" cy="20" r="3" stroke="#333" strokeWidth="1"/>
+                    <line x1="11" y1="8" x2="17" y2="8" stroke="#2a2a2a" strokeWidth="1"/>
+                    <line x1="9.5" y1="10.5" x2="12.5" y2="17.5" stroke="#2a2a2a" strokeWidth="1"/>
+                    <line x1="18.5" y1="10.5" x2="15.5" y2="17.5" stroke="#2a2a2a" strokeWidth="1"/>
+                  </svg>
+                </div>
+                <h2>No network loaded</h2>
+                <p>Enter a URL above to generate a content graph</p>
+              </div>
+            )}
+
+            {loading && (
+              <div className="loading-overlay">
+                <div className="spinner" />
+                <div className="loading-text">{loadingMsg}</div>
+                <div className="loading-sub">AI is mapping your content structure</div>
+              </div>
+            )}
+
+            {networkData && (
+              <>
+                <div className="domain-badge">{networkData.domain}</div>
+                <NetworkGraph data={networkData} onNodeClick={setSelectedNode} selectedNode={selectedNode} />
+                <div className="controls">
+                  <button className="ctrl-btn" title="Reset zoom" onClick={() => window._centerGraph?.()}>⊡</button>
+                  <button className="ctrl-btn" title="Clear" onClick={() => setSelectedNode(null)}>✕</button>
+                </div>
+                <div className="legend">
+                  <div className="legend-item"><div className="legend-dot" style={{background:"#aaa"}} /> Primary</div>
+                  <div className="legend-item"><div className="legend-dot" style={{background:"#555"}} /> Secondary</div>
+                  <div className="legend-item"><div className="legend-dot" style={{background:"#333"}} /> Tertiary</div>
+                </div>
+              </>
+            )}
+          </div>
+
+          {/* Sidebar */}
+          <div className="sidebar">
+            <div className="sidebar-header">
+              <div className="sidebar-title">{selectedNode ? "Node Detail" : "Index"}</div>
+              <div className="sidebar-count">{networkData ? `${networkData.nodes.length} nodes` : "—"}</div>
+            </div>
+
+            <div className="sidebar-body">
+              {selectedNode ? (
+                <>
+                  <div className="node-detail">
+                    <div className="node-detail-label">{selectedNode.label}</div>
+                    <div className="node-detail-meta">Score: {selectedNode.weight} · {selectedNode.category}</div>
+                    {(() => {
+                      const connected = getConnected(selectedNode);
+                      return connected.length > 0 && (
+                        <>
+                          <div className="node-connections">Connected nodes ({connected.length})</div>
+                          <div className="connection-tags">
+                            {connected.map(n => (
+                              <span key={n.id} className="tag" onClick={e => { e.stopPropagation(); setSelectedNode(n); }}>{n.label}</span>
+                            ))}
+                          </div>
+                        </>
+                      );
+                    })()}
+                  </div>
+                  {selectedNode.articles?.length > 0 && (
+                    <div className="articles-section">
+                      <div className="articles-label">Related Content ({selectedNode.articles.length})</div>
+                      {selectedNode.articles.map((a, i) => (
+                        <div key={i} className="article-item" onClick={() => window.open(a.url, "_blank")}>
+                          <div className="article-title">{a.title}</div>
+                          <div className="article-url">{a.url}</div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </>
+              ) : (
+                <div className="node-list">
+                  {sortedNodes.map(n => (
+                    <div key={n.id} className={`node-list-item${selectedNode?.id === n.id ? " active" : ""}`} onClick={() => setSelectedNode(n)}>
+                      <div className={`node-dot dot-${n.category}`} />
+                      <div className="node-list-label">{n.label}</div>
+                      <div className="node-list-weight">{n.weight}</div>
+                    </div>
+                  ))}
+                  {!networkData && (
+                    <div style={{padding:"24px 16px",fontSize:"10px",color:"var(--text3)",lineHeight:"1.8"}}>
+                      Enter a target URL and click<br/>"Create Content Network"<br/>to begin analysis.
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {networkData && (
+              <div className="stats-bar">
+                <div className="stat"><div className="stat-value">{networkData.nodes.length}</div><div className="stat-label">Nodes</div></div>
+                <div className="stat"><div className="stat-value">{networkData.edges.length}</div><div className="stat-label">Edges</div></div>
+                <div className="stat"><div className="stat-value">{networkData.nodes.filter(n=>n.category==="primary").length}</div><div className="stat-label">Primary</div></div>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </>
+  );
+}
+
+const root = ReactDOM.createRoot(document.getElementById("root"));
+root.render(<App />);
+</script>
+</body>
+</html>
